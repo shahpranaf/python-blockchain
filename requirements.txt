@@ -3,4 +3,3 @@ Flask==1.0.2
 Flask_Cors==3.0.4
 jira==2.0.0
 pycrypto==2.6.1
-gunicorn==19.9.0
