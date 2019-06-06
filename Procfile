@@ -1,1 +1,1 @@
-web: gunicorn node:app
+web: python node.py
