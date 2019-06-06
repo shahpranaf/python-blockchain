@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Blockchain Management</title>
+    <script src="assets/jquery-1.11.1.min.js"></script>
+    <!-- <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"> -->
+    <script src="assets/bootstrap.min.js"></script>
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
+        crossorigin="anonymous"> -->
+
+    <link rel="stylesheet" href="assets/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
+    crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+            <div v-if="error" class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            <div v-if="success" class="alert alert-success" role="alert">
+                {{ success }}
+            </div>
+
+
+            <!-- Tabs -->
+            <section>
+                <div class="container">
+                    <h6 class="section-title h1">Manage your Jira</h6>
+                    <div class="row">
+                        <div class="col-xs-12 col-md-12">
+                            <div class="tab-content py-3 px-3 px-sm-0" id="nav-tabContent">
+                                <div class="form-group row">
+                                    <select v-model="showType" @change="listJiras(showType)" 
+                                        class="form-control col-md-6" id="showType">
+                                        <option value="">Select User</option>
+                                        <option>prashah</option>
+                                        <option>tjadhav</option>
+                                        <option>aguha</option>
+                                        <option>rxing</option>
+                                        <option>aniyer</option>
+                                        <option>phonwadk</option>
+                                        <option>mbitla</option>
+                                        <option>snanda</option>
+                                        <option>bngai</option>
+                                    </select>
+
+                                    <div class="search-wrapper col-md-6">
+                                            <input type="text" class="form-control" v-model="search" placeholder="Search title.."/>
+                                    </div>
+
+                                    <span class="col-md-6 mx-auto" 
+                                    style="display: block;text-align: center; font-size: 20px; margin: 10px auto;">
+                                    {{filteredJira.length+' tickets'}} </span>
+
+                                </div>
+
+                                <table class="table table-hover">
+                                    <thead>
+                                      <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Key</th>
+                                        <th scope="col">Summary</th>
+                                        <th scope="col">Status</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody v-if="filteredJira.length !=0">
+                                      <tr v-for="(data, index) in filteredJira ">
+                                        <th scope="row">{{index+1}}</th>
+                                        <td><a :href="data.permalink" :title="data.description">{{data.key}}</a></td>
+                                        <td>{{data.summary}}</td>
+                                        <td>{{data.status}}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>     
+                                  
+                                <div  v-if="dataLoading" id="loader"></div>
+                                
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- ./Tabs -->
+
+
+                     
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                blockchain: [],
+                openTransactions: [],
+                wallet: null,
+                view: 'chain',
+                walletLoading: false,
+                txLoading: false,
+                dataLoading: false,
+                showElement: null,
+                error: null,
+                success: null,
+                funds: 0,
+                outgoingTx: {
+                    recipient: '',
+                    amount: 0
+                },
+                img_count: 0,
+                images: [],
+                tickets: [],
+                ticket_count:0,
+                currentStatus: true,
+                showType: '',
+                search: '',
+                vbox: 'local'
+            },
+            computed: {
+                filteredJira: function() {
+                    var filt = []
+                    filt = this.tickets.filter(data => {
+                        return data && ( data.key.toLowerCase().includes(this.search.toLowerCase()) || data.summary.toLowerCase().includes(this.search.toLowerCase()) )
+                    })
+
+                    return filt;
+                }
+            },
+            beforeMount() {
+                this.listJiras('')
+                $('#nav-local-tab').addClass('active')
+            },
+            methods: {
+                listJiras: function (name) {
+                    if(name == '')
+                        return false;
+                    var vm = this;
+                    vm.dataLoading = true;
+                    vm.tickets = [];
+                    axios.get('/tickets?name='+name)
+                        .then(function (response) {
+
+                            if(response.status === 200){
+                                console.log(response.data.length)
+                                Vue.set(vm, 'tickets', response.data)
+                                // vm.containers = response.data;
+                                vm.ticket_count = response.data.length
+                                // return response.data;
+                            }else {
+                                console.log("No Tickets found")
+                                Vue.set(vm, 'tickets', response.data)
+                                // vm.containers = response.data;
+                                vm.ticket_count = 0
+                            }
+                            vm.dataLoading = false;
+                        });
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

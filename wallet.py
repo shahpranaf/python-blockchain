@@ -5,10 +5,10 @@ import Crypto.Random
 import binascii #convert binary to ascii
 
 class Wallet:
-    def __init__(self):
+    def __init__(self, node_id):
         self.private_key = None
         self.public_key = None
-
+        self.node_id = node_id
 
     def create_keys(self):
         private_key, public_key = self.generate_keys()
@@ -18,22 +18,26 @@ class Wallet:
 
     def save_keys(self):
         try:
-            with open('wallet.txt', mode = 'w') as file:
+            with open('wallet-{}.txt'.format(self.node_id), mode = 'w') as file:
                 file.write(self.public_key)
                 file.write('\n')
                 file.write(self.private_key)
+                return True 
         except IOError:
             print("Error !!! Saving wallet")
+            return False
 
 
     def load_keys(self):
         try:
-            with open('wallet.txt', mode = 'r') as file:
+            with open('wallet-{}.txt'.format(self.node_id), mode = 'r') as file:
                 keys = file.readlines()
                 self.public_key = keys[0][:-1]
                 self.private_key = keys[1]
+                return True
         except IOError:
             print("Error !!! Loading keys from wallet")
+            return False
 
 
     def generate_keys(self):
