@@ -1,4 +1,4 @@
-
+import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from argparse import ArgumentParser
@@ -277,7 +277,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', type=int, default=5000)
     args = parser.parse_args()
-    port = args.port
+    port = int(os.environ.get("PORT", args.port))
     wallet = Wallet(port)
     blockchain = Blockchain(wallet.public_key, port)
     app.run(host='0.0.0.0', port=port)
